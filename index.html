@@ -1,5 +1,8 @@
-<html>
+<!DOCTYPE html>
+
+<html lang="en">
 	<head>
+		<meta charset="utf-8"/>
 		<style>
 			body {
 				text-align:center;
@@ -8,6 +11,9 @@
 			
 			#content {
 				position:absolute;
+				background-image:url(macpro.png);
+				background-size:100% 100%;
+				background-repeat:no-repeat;
 			}
 			
 		</style>
@@ -129,10 +135,6 @@
 				}
 			}
 			
-			function drawBackground() {
-				gc.drawImage(macProImg, 0, 0 , canvas.width, canvas.height);
-			}
-			
 			function resizeBackground() {
 				var width;
 				var height;
@@ -172,11 +174,8 @@
 			}
 			
 			function drawContent(x, y) {
-				console.log("clearing");
 				gc.clearRect(0,0,canvas.width, canvas.height);
-				console.log("cleared");
 				gc.fillStyle = "#FFFFFF";
-				drawBackground();
 				
 				for(var i = 0; i < eyeArr.length; i++) {
 					eyeArr[i].draw(gc, x, y);
@@ -184,9 +183,7 @@
 			}
 			
 			function draw(e) {
-				var mouseX = e.clientX*2-(canvas.getBoundingClientRect().left*2)+20;
-				var mouseY = e.clientY*2-heightOffsetY+10;
-				drawContent(mouseX, mouseY);
+				drawContent(cacheMouseX*2-(canvas.getBoundingClientRect().left*2)+20, cacheMouseY*2-heightOffsetY+10);
 			}
 			
 			function makeNewEyes() {
@@ -223,6 +220,8 @@
 			function loaded() {
 			 	canvas = document.getElementById("content");
 			 	gc = canvas.getContext("2d");
+			 	gc.clearRect(0,0,canvas.width, canvas.height);
+			 	
 			 	
 				macProImg = new Image();
 				macProImg.src = "macpro.png";
@@ -249,7 +248,25 @@
 					draw(event);
 				});
 				
-				window.alert("Move mouse.\n(This site doesn't work on mobile. Sorry.)");
+				window.addEventListener("touchmove", function(event) {
+					cacheMouseX = event.touches[0].clientX;
+					cacheMouseY = event.touches[0].clientY;
+					event.preventDefault();
+					click = true;
+					draw(event);
+				});
+				
+				window.addEventListener("touchended", function(event) {
+					cacheMouseX = event.touches[0].clientX;
+					cacheMouseY = event.touches[0].clientY;
+					event.preventDefault();
+					click = false;
+					draw(event);
+				});
+				
+				for(var i = 0; i < eyeArr.length; i++) {
+					eyeArr[i].draw(gc, eyeArr[i].eyeX+Math.round(eyeArr[i].width/2), eyeArr[i].eyeY+Math.round(eyeArr[i].height/2));
+				}
 			}
 		</script>
 	</head>
