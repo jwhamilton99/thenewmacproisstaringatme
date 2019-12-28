@@ -1,0 +1,261 @@
+<html>
+	<head>
+		<style>
+			body {
+				text-align:center;
+				overflow:hidden;
+			}
+			
+			#content {
+				position:absolute;
+			}
+			
+		</style>
+		<script>
+			var canvas;
+			var gc;
+			var eyeArr = [];
+			
+			var backgroundWidth;
+			var backgroundHeight;
+			var macProImg;
+			
+			var holeSize;
+			var holeOffsetX;
+			var holeOffsetY;
+			var holeStartOffsetY;
+			var holeStartOffsetX;
+			var holeStartOffsetXOdd;
+			var heightOffsetY;
+			
+			var cacheMouseX, cacheMouseY;
+			
+			var numRows = 21;
+			var evenRow = false;
+			
+			var click = false;
+			
+			class Eye {
+				constructor(x, y, size, index) {
+					this.eyeX = x;
+					this.eyeY = y;
+					this.width = size;
+					this.height = size;
+					this.isClicking = false;
+					this.letGoLock = false;
+					this.index = index;
+				}
+				
+				draw(gc, mouseX, mouseY) {
+					var ang;
+					var xToWid = mouseX-(this.eyeX+this.width/2);
+					var yToHgt = mouseY-(this.eyeY+this.height/2);
+					var dstFromC = Math.sqrt(Math.pow((xToWid),2)+Math.pow((yToHgt),2));
+					ang = Math.acos(xToWid/dstFromC);
+					ang*=(-1);
+					
+					if(mouseY >= this.eyeY+this.height/2) {
+						ang*=(-1);
+					}
+					
+					var pupX, pupY;
+					
+					var clickingOnEye = false;
+					
+					if(dstFromC > (1*this.width)/4) {
+						pupX = ((this.width)/4)*(Math.cos(ang))+(this.eyeX+this.width/2);
+						pupY = ((this.width)/4)*(Math.sin(ang))+(this.eyeY+this.height/2);
+					} else {
+						pupX = dstFromC*(Math.cos(ang))+(this.eyeX+this.width/2);
+						pupY = dstFromC*(Math.sin(ang))+(this.eyeY+this.height/2);
+					}
+					
+					if(dstFromC <= this.width/2) {
+						clickingOnEye = click;
+					} else {
+						clickingOnEye = false;
+					}
+					
+					if(!clickingOnEye) {
+						if(this.isClicking) {
+							if(!this.letGoLock) {
+								var cacheIndex = this.index;
+								var mx = this.eyeX+this.width/2;
+								var my = this.eyeY+this.height/2;
+								setTimeout(function() {
+									eyeArr[cacheIndex].isClicking = false;
+									eyeArr[cacheIndex].letGoLock = false;
+									eyeArr[cacheIndex].draw(gc, cacheMouseX, cacheMouseY);
+								}, 1000);
+								this.letGoLock = true;
+							}
+							gc.fillStyle = "#BEC2C3"
+							gc.beginPath();
+							gc.arc(this.eyeX+this.width/2,this.eyeY+this.height/2, this.width/2, 0, 2*Math.PI);
+							gc.fill();
+							gc.strokeStyle = "#000000";
+							gc.lineWidth = "3";
+							gc.beginPath();
+							gc.moveTo(this.eyeX, this.eyeY+this.height/2);
+							gc.lineTo(this.eyeX+this.width, this.eyeY+this.height/2);
+							gc.stroke();
+						} else {
+							this.isClicking = false;
+							gc.fillStyle="#FFFFFF";
+							gc.beginPath();
+							gc.arc(this.eyeX+this.width/2,this.eyeY+this.height/2, this.width/2, 0, 2*Math.PI);
+							gc.fill();
+							gc.fillStyle = "#000000";
+							gc.beginPath();
+							gc.arc(pupX,pupY,this.width/4,0,2*Math.PI);
+							gc.fill();
+						}
+					} else {
+						this.isClicking = true;
+						this.letGoLock = false;
+						gc.fillStyle = "#BEC2C3"
+						gc.beginPath();
+						gc.arc(this.eyeX+this.width/2,this.eyeY+this.height/2, this.width/2, 0, 2*Math.PI);
+						gc.fill();
+						gc.strokeStyle = "#000000";
+						gc.lineWidth = "3";
+						gc.beginPath();
+						gc.moveTo(this.eyeX, this.eyeY+this.height/2);
+						gc.lineTo(this.eyeX+this.width, this.eyeY+this.height/2);
+						gc.stroke();
+					}
+				}
+			}
+			
+			function drawBackground() {
+				gc.drawImage(macProImg, 0, 0 , canvas.width, canvas.height);
+			}
+			
+			function resizeBackground() {
+				var width;
+				var height;
+				
+				console.log(cacheMouseX+", "+cacheMouseY);
+				
+				height = window.innerHeight*2;
+				width = (960*height)/2333;
+				
+				var heightOffset = 0;
+				
+				if(window.innerWidth*2 < width) {
+					
+					width = window.innerWidth*2;
+					height = (2333*width)/960;
+					
+					heightOffset = (window.innerHeight)-(height/2);
+				}
+				
+				backgroundWidth = width;
+				backgroundHeight = height;
+				
+				document.getElementById("content").style.width = ((width/2-20)+"px");
+				document.getElementById("content").style.height = ((height/2-20)+"px");
+				document.getElementById("content").style.top = (((heightOffsetY/2)+10)+"px");
+				document.getElementById("content").style.left = (((window.innerWidth/2)-(width/4)+10)+"px");
+				canvas.width = width;
+				canvas.height = height;
+				
+				
+				holeSize = (88*backgroundWidth)/960;
+				holeOffsetX = (12.25*backgroundWidth)/960
+				holeOffsetY = (-1*backgroundHeight)/2333;
+				holeStartOffsetY = (279*backgroundHeight)/2333;
+				heightOffsetY = heightOffset;
+				holeStartOffsetX = (86*backgroundWidth)/960;
+				holeStartOffsetXOdd = (50*backgroundWidth)/960;
+				drawBackground();
+				for(var i = 0; i < eyeArr.length; i++) {
+					eyeArr[i].draw(gc, cacheMouseX, cacheMouseY);
+				}
+			}
+			
+			function draw(e) {
+				gc.clearRect(0,0,canvas.width, canvas.height);
+				gc.fillStyle = "#FFFFFF";
+				var mouseX = e.clientX*2-(canvas.getBoundingClientRect().left*2)+20;
+				var mouseY = e.clientY*2-heightOffsetY+10;
+				drawBackground();
+				
+				for(var i = 0; i < eyeArr.length; i++) {
+					eyeArr[i].draw(gc, mouseX, mouseY);
+				}
+			}
+			
+			function makeNewEyes() {
+				eyeArr = [];
+				evenRow = false;
+				
+				for(var i = 0; i < numRows; i++) {
+					if(!evenRow) {
+						for(var j = 0; j < 8; j++) {
+							var offset = holeStartOffsetX+(holeOffsetX*j)+(holeSize*j);
+							var x = offset;
+							
+							var y = holeStartOffsetY+(holeSize*i)+((holeOffsetY)*i);
+							
+							var eye = new Eye(x,y,holeSize, eyeArr.length);
+							eyeArr.push(eye);
+						}
+					} else {
+						for(var j = 0; j < 7; j++) {
+							var offset = holeStartOffsetX+(holeOffsetX*j)+(holeSize*j)+holeStartOffsetXOdd;
+							var x = offset;
+							
+							var y = holeStartOffsetY+(holeSize*i)+((holeOffsetY)*i);
+							
+							var eye = new Eye(x,y,holeSize, eyeArr.length);
+							eyeArr.push(eye);
+						}
+					}
+					
+					evenRow = !evenRow;
+				}
+			}
+			
+			function loaded() {
+			 	canvas = document.getElementById("content");
+			 	gc = canvas.getContext("2d");
+			 	
+			 	
+				macProImg = new Image();
+				macProImg.src = "macpro.png";
+				resizeBackground();
+				
+				makeNewEyes();
+				
+				window.addEventListener("mousedown", function(event) {
+					click = true;
+					draw(event);
+				});
+				
+				window.addEventListener("mouseup", function(event) {
+					click = false;
+					draw(event);
+				});
+			 	
+			 	window.onresize = function(event) {
+					resizeBackground();
+					makeNewEyes();
+					draw(event);
+				};
+				
+				window.addEventListener("mousemove", function(event) {
+					cacheMouseX = event.clientX;
+					cacheMouseY = event.clientY;
+					draw(event);
+				});
+			}
+		</script>
+	</head>
+	<body onload="loaded()">
+		<div id="options">
+		
+		</div>
+		<canvas id="content"></canvas>
+	</body>
+</html>
