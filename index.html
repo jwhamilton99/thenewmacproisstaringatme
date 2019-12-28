@@ -248,6 +248,10 @@
 					draw(event);
 				});
 				
+				window.addEventListener("touchstart", function(event) {
+					event.preventDefault();
+				});
+				
 				window.addEventListener("touchmove", function(event) {
 					cacheMouseX = event.touches[0].clientX;
 					cacheMouseY = event.touches[0].clientY;
