@@ -28,7 +28,8 @@
 			var holeStartOffsetXOdd;
 			var heightOffsetY;
 			
-			var cacheMouseX, cacheMouseY;
+			var cacheMouseX = 0;
+			var cacheMouseY = 0;
 			
 			var numRows = 21;
 			var evenRow = false;
@@ -135,8 +136,6 @@
 				var width;
 				var height;
 				
-				console.log(cacheMouseX+", "+cacheMouseY);
-				
 				height = window.innerHeight*2;
 				width = (960*height)/2333;
 				
@@ -168,22 +167,26 @@
 				heightOffsetY = heightOffset;
 				holeStartOffsetX = (86*backgroundWidth)/960;
 				holeStartOffsetXOdd = (50*backgroundWidth)/960;
+				console.log("drawing image");
+				makeNewEyes();
+			}
+			
+			function drawContent(x, y) {
+				console.log("clearing");
+				gc.clearRect(0,0,canvas.width, canvas.height);
+				console.log("cleared");
+				gc.fillStyle = "#FFFFFF";
 				drawBackground();
+				
 				for(var i = 0; i < eyeArr.length; i++) {
-					eyeArr[i].draw(gc, cacheMouseX, cacheMouseY);
+					eyeArr[i].draw(gc, x, y);
 				}
 			}
 			
 			function draw(e) {
-				gc.clearRect(0,0,canvas.width, canvas.height);
-				gc.fillStyle = "#FFFFFF";
 				var mouseX = e.clientX*2-(canvas.getBoundingClientRect().left*2)+20;
 				var mouseY = e.clientY*2-heightOffsetY+10;
-				drawBackground();
-				
-				for(var i = 0; i < eyeArr.length; i++) {
-					eyeArr[i].draw(gc, mouseX, mouseY);
-				}
+				drawContent(mouseX, mouseY);
 			}
 			
 			function makeNewEyes() {
@@ -221,12 +224,9 @@
 			 	canvas = document.getElementById("content");
 			 	gc = canvas.getContext("2d");
 			 	
-			 	
 				macProImg = new Image();
 				macProImg.src = "macpro.png";
 				resizeBackground();
-				
-				makeNewEyes();
 				
 				window.addEventListener("mousedown", function(event) {
 					click = true;
@@ -240,7 +240,6 @@
 			 	
 			 	window.onresize = function(event) {
 					resizeBackground();
-					makeNewEyes();
 					draw(event);
 				};
 				
@@ -249,6 +248,20 @@
 					cacheMouseY = event.clientY;
 					draw(event);
 				});
+				
+				window.addEventListener("tapstarted", function(event) {
+					click = true;
+					cacheMouseX = event.clientX;
+					cacheMouseY = event.clientY;
+					draw(event);
+				});
+				
+				window.addEventListener("tapended", function(event) {
+					click = false;
+					draw(event);
+				});
+				
+				window.alert("Move mouse or finger.");
 			}
 		</script>
 	</head>
