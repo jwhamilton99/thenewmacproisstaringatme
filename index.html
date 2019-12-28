@@ -167,7 +167,6 @@
 				heightOffsetY = heightOffset;
 				holeStartOffsetX = (86*backgroundWidth)/960;
 				holeStartOffsetXOdd = (50*backgroundWidth)/960;
-				console.log("drawing image");
 				makeNewEyes();
 			}
 			
@@ -249,19 +248,7 @@
 					draw(event);
 				});
 				
-				window.addEventListener("tapstarted", function(event) {
-					click = true;
-					cacheMouseX = event.clientX;
-					cacheMouseY = event.clientY;
-					draw(event);
-				});
-				
-				window.addEventListener("tapended", function(event) {
-					click = false;
-					draw(event);
-				});
-				
-				window.alert("Move mouse or finger.");
+				window.alert("Move mouse.");
 			}
 		</script>
 	</head>
